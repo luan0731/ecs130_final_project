@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>final</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-03-08"><meta name="DC.source" content="final.m"><style type="text/css">
+      --><title>Introduction</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-03-09"><meta name="DC.source" content="final.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,11 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Get started</a></li><li><a href="#5">Part 1: The Centroid method</a></li><li><a href="#6">Step a: Calculate the distance between the means and the test image</a></li><li><a href="#9">Step b: Classify the test set of digit</a></li><li><a href="#12">Step c: Report the success rate (correct/total) of each digit</a></li><li><a href="#13">Part 2: The PCA Method</a></li><li><a href="#14">Step a: Find the principal components of the training set</a></li><li><a href="#28">Step b: Test and report the success rate</a></li></ul></div><h2>Get started<a name="1"></a></h2><p>The MNIST databse of handwritten digits -- Yann LeCun -- NYU Corinna Cortes -- Google Chris J. C. Burges -- Microsoft Research</p><pre class="codeinput">clear;
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>In this assignment, we will attempt a classic pattern recognition problem. Given a dataset consisting of images of handwritten digits, the goal is to implement an algorithm that correctly labels each image with the correct digit classification (0 to 9).</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Getting started</a></li><li><a href="#3">Dataset</a></li><li><a href="#5">Part 1: The Centroid method</a></li><li><a href="#6">Step a: Calculate the distance between the means and the test image</a></li><li><a href="#9">Step b: Classify the test set of digit</a></li><li><a href="#12">Step c: Report the success rate (correct/total) of each digit</a></li><li><a href="#13">Part 2: The PCA Method</a></li><li><a href="#14">Step a: Find the principal components of the training set</a></li><li><a href="#28">Step b: Test and report the success rate</a></li></ul></div><h2>Getting started<a name="1"></a></h2><div><ol><li>Read the first few pages in the chapter on "Classification of Handwritten Digits" available on Canvas under Files for background on this problem.</li><li>Download the dataset <b>'mnistdata.mat'</b> and the scripts <b>'mnistdata_upload.m'</b> and <b>'viewdigit'</b> from the assignment page</li><li>Start with the 'mnistdata_upload.m' script and keep modifying it as we guide you through the steps.</li></ol></div><pre class="codeinput"><span class="comment">% The MNIST databse of handwritten digits --</span>
+<span class="comment">% Yann LeCun -- NYU</span>
+<span class="comment">% Corinna Cortes -- Google</span>
+<span class="comment">% Chris J. C. Burges -- Microsoft Research</span>
+clear;
 load <span class="string">mnistdata</span>;
 
 <span class="comment">% Visualize a selected train/test digit</span>
@@ -111,7 +115,7 @@ figure(2)
     colormap(gray(256));
     axis <span class="string">square</span> <span class="string">tight</span> <span class="string">off</span>;
 <span class="keyword">end</span>
-</pre><img vspace="5" hspace="5" src="final_01.png" alt=""> <img vspace="5" hspace="5" src="final_02.png" alt=""> <p>The first figure above gives a sample of different instances of digit 8 in the data matrix 'train8'. The second figure shows the average of all the 0 digits, the average of all the 1 digits, and so on.</p><p>The data is separated into two categories, training and testing. Each category contains 10 sets of digits from 0-9. Each row vector of length 784 is a 28-by-28 image.</p><pre class="codeinput">whos(<span class="string">'-file'</span>,<span class="string">'mnistdata.mat'</span>)
+</pre><img vspace="5" hspace="5" src="final_01.png" alt=""> <img vspace="5" hspace="5" src="final_02.png" alt=""> <p>The first figure above gives a sample of different instances of digit 8 in the data matrix 'train8'. The second figure shows the average of all the 0 digit instances, the average of all the 1 digit instances, the average of all the 2 digit instances and so on.</p><h2>Dataset<a name="3"></a></h2><div><ol><li>The data is separated into two categories, training and testing.</li><li>Each category contains 10 sets of digits from 0-9. For example, as shown below the training set <b>train5</b> contains 892 instances of digit 5, and the test set <b>test8</b> contains 974 instances of digit 8.</li><li><b>Each 784-by-1 row vector is a 28-by-28 image.</b></li></ol></div><pre class="codeinput">whos(<span class="string">'-file'</span>,<span class="string">'mnistdata.mat'</span>)
 </pre><pre class="codeoutput">  Name           Size               Bytes  Class    Attributes
 
   test0        980x784             768320  uint8              
@@ -135,7 +139,7 @@ figure(2)
   train8      5851x784            4587184  uint8              
   train9      5949x784            4664016  uint8              
 
-</pre><p>In this project, we investigate two ways to classify an image, centroid method and PCA method.</p><h2>Part 1: The Centroid method<a name="5"></a></h2><h2>Step a: Calculate the distance between the means and the test image<a name="6"></a></h2><p>The following code takes a digit from the testing set and computes the 2-norm distances between this digit and the 10 average train digits computed above.</p><pre class="codeinput">z = double(test7(55,:));
+</pre><p><b>In this project, we investigate two ways to classify an image, centroid method and PCA method.</b></p><h2>Part 1: The Centroid method<a name="5"></a></h2><h2>Step a: Calculate the distance between the means and the test image<a name="6"></a></h2><p>The following code takes a digit from the testing set and computes the 2-norm distances between this digit and the 10 average train digits computed above.</p><pre class="codeinput">z = double(test7(55,:));
 dist = zeros(10,1);
 <span class="keyword">for</span> k=1:10
     dist(k) = norm( z - T(k,:) );
@@ -157,7 +161,7 @@ dist =
     1.9331
     1.6696
 
-</pre><p>Since the 2-norm distance between unknown digit and the average train digit 7 is smallest, our simple classification algorithm will label unknown digit as '7' which is indeed the correct answer.</p><p>Note also that average train digit 7 is actually T(8,:) because MATLAB indexing starts at 1.</p><h2>Step b: Classify the test set of digit<a name="9"></a></h2><p>Write a function that takes as inputs:</p><div><ul><li>an n-by-784 matrix A containing n digits</li><li>a 10-by-784 matrix T containing the average train digits</li></ul></div><p>and ouputs:</p><div><ul><li>an n-by-1 vector containing the labels (0-9) for digits in A.</li></ul></div><h2>Step c: Report the success rate (correct/total) of each digit<a name="12"></a></h2><p>Classify the entire test set and report the success rate of each digit.</p><h2>Part 2: The PCA Method<a name="13"></a></h2><p>The PCA method attempts to identify characteristic properties of each digit, based on the training data, and compares these properties with those of the test digit in order to make an identification. Here, the characteristic properties are the principal components extracted from the training set.</p><h2>Step a: Find the principal components of the training set<a name="14"></a></h2><p>Find the first 5 singular vectors of the transpose of train3.</p><pre class="codeinput">[U3,~,~] = svds(double(train3'), 5) ;
+</pre><p>Since the 2-norm distance between unknown digit and the average train digit 7 is smallest, our simple classification algorithm will label unknown digit as '7' which is indeed the correct answer.</p><p>Note also that average train digit 7 is actually T(8,:) because MATLAB indexing starts at 1.</p><h2>Step b: Classify the test set of digit<a name="9"></a></h2><p><b>Task 1: Write a function that takes as inputs:</b></p><div><ul><li>an n-by-784 matrix A containing n digits</li><li>a 10-by-784 matrix T containing the average train digits</li></ul></div><p>and ouputs:</p><div><ul><li>an n-by-1 vector containing the labels (0-9) for digits in A.</li></ul></div><h2>Step c: Report the success rate (correct/total) of each digit<a name="12"></a></h2><p><b>Task 2: Classify the entire test set and report the success rate of each digit.</b></p><h2>Part 2: The PCA Method<a name="13"></a></h2><p>The PCA method attempts to identify characteristic properties of each digit, based on the training data, and compares these properties with those of the test digit in order to make an identification. Here, the characteristic properties are the principal components extracted from the training set.</p><h2>Step a: Find the principal components of the training set<a name="14"></a></h2><p>Find the first 5 singular vectors of the transpose of train3.</p><pre class="codeinput">[U3,~,~] = svds(double(train3'), 5) ;
 size(U3)
 </pre><pre class="codeoutput">
 ans =
@@ -174,7 +178,7 @@ Us=zeros( 28*28, basis_len, 10);
     s = strcat(<span class="string">'train'</span>,num2str(k-1));
     A = double(eval(s));
 
-    <span class="comment">% and get first 5 singular vector</span>
+    <span class="comment">% and get first 5 singular vector of A transposed</span>
 	[U,~,~] = svds( A', basis_len );
     Us(:,:,k)=U;
 <span class="keyword">end</span>
@@ -201,9 +205,23 @@ dist =
     1.9618
     1.7316
 
-</pre><p>Since test4(14,:) is best represented by the approximate basis of digit 4 (this is indicated by the smallest number). It gets labeled with '4' which is the correct answer!</p><p>Write a function that takes as inputs:</p><div><ul><li>an n-by-784 matrix A containing n digits</li><li>a 784-by-k-by-10 matrix T containing the first k singular vectors for each of the training sets (train0',train1',train2'...,train9') (tranposed!)</li></ul></div><p>and ouputs:</p><div><ul><li>n-by-1 vector containing the labels (0-9) for digits in A.</li></ul></div><h2>Step b: Test and report the success rate<a name="28"></a></h2><div><ul><li>As in step b of Part 1, test and report the success rate of this PCA approach</li><li>Experiment with larger approximate bases (i.e. increase the basis_len).</li><li>(Optional) Try bases of different lengths for different digits</li></ul></div><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+</pre><p>Since test4(14,:) is best represented by the approximate basis of digit 4 (this is indicated by the smallest number). It gets labeled with '4' which is the correct answer!</p><p><b>Task 3: Write a function that takes as inputs:</b></p><div><ul><li>an n-by-784 matrix A containing n digits</li><li>a 784-by-5-by-10 matrix T containing the first 5 singular vectors for each of the training sets (train0',train1',train2'...,train9') (remember to take tranposed!)</li></ul></div><p>and ouputs:</p><div><ul><li>n-by-1 vector containing the labels (0-9) for digits in A.</li></ul></div><h2>Step b: Test and report the success rate<a name="28"></a></h2><p><b>Task 4:</b></p><div><ul><li>As in step b of Part 1, test and report the success rate of this PCA approach</li><li>Experiment with larger approximate bases (i.e. increase the basis_len).</li><li>(Optional) Try bases of different lengths for different digits</li></ul></div><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% Get started
+%% Introduction
+% In this assignment, we will attempt a classic pattern recognition
+% problem. Given a dataset consisting of images of handwritten digits, 
+% the goal is to implement an algorithm that correctly labels each image with the 
+% correct digit classification (0 to 9). 
+
+%% Getting started
+% 
+% # Read the first few pages in the chapter on "Classification of Handwritten Digits" available on
+% Canvas under Files for background on this problem.
+% # Download the dataset *'mnistdata.mat'* and the scripts
+% *'mnistdata_upload.m'* and *'viewdigit'* from the assignment page
+% # Start with the 'mnistdata_upload.m' script and keep modifying it as we
+% guide you through the steps. 
+
 % The MNIST databse of handwritten digits REPLACE_WITH_DASH_DASH
 % Yann LeCun REPLACE_WITH_DASH_DASH NYU 
 % Corinna Cortes REPLACE_WITH_DASH_DASH Google 
@@ -253,26 +271,34 @@ for i = 1:10
     colormap(gray(256)); 
     axis square tight off; 
 end
+
+
 %%
 % The first figure above gives a sample of different instances
 % of digit 8 in the data matrix 'train8'.
-% The second figure shows the average of all the 0 digits, the average of 
-% all the 1 digits, and so on.
+% The second figure shows the average of all the 0 digit instances, the average of 
+% all the 1 digit instances, the average of all the 2 digit instances and
+% so on. 
 
-%% 
-% The data is separated into two categories, training and testing. Each 
-% category contains 10 sets of digits from 0-9. Each row vector of length
-% 784 is a 28-by-28 image.
+%% Dataset
+%
+% # The data is separated into two categories, training and testing.
+% # Each category contains 10 sets of digits from 0-9. For example, as
+% shown below the training set *train5* contains 892 instances of digit 5,
+% and the test set *test8* contains 974 instances of digit 8. 
+% # *Each 784-by-1 row vector is a 28-by-28 image.*
+
 whos('-file','mnistdata.mat')
 
 %%
-% In this project, we investigate two ways to classify an image, centroid
-% method and PCA method.
+% *In this project, we investigate two ways to classify an image, centroid
+% method and PCA method.*
+
 %% Part 1: The Centroid method
 %% Step a: Calculate the distance between the means and the test image
 % The following code takes a digit from the testing set and computes 
 % the 2-norm distances between this digit and the 10 average train digits 
-% computed above.  
+% computed above. 
 
 z = double(test7(55,:));
 dist = zeros(10,1); 
@@ -288,8 +314,8 @@ dist
 %%
 % Note also that average train digit 7 is actually T(8,:) because MATLAB
 % indexing starts at 1. 
-%% Step b: Classify the test set of digit 
-% Write a function that takes as inputs:
+%% Step b: Classify the test set of digit
+% *Task 1: Write a function that takes as inputs:*
 %%
 % 
 % * an n-by-784 matrix A containing n digits
@@ -301,7 +327,8 @@ dist
 % * an n-by-1 vector containing the labels (0-9) for digits in A. 
 
 %% Step c: Report the success rate (correct/total) of each digit
-% Classify the entire test set and report the success rate of each digit.
+% *Task 2: Classify the entire test set and report the success rate of each
+% digit.*
 %
 %
 
@@ -351,7 +378,7 @@ for k=1:10
     s = strcat('train',num2str(k-1));
     A = double(eval(s));
     
-    % and get first 5 singular vector
+    % and get first 5 singular vector of A transposed 
 	[U,~,~] = svds( A', basis_len );
     Us(:,:,k)=U; 
 end
@@ -390,13 +417,13 @@ dist
 % labeled with '4' which is the correct answer!
 
 %% 
-% Write a function that takes as inputs:
+% *Task 3: Write a function that takes as inputs:*
 %%
 % 
 % * an n-by-784 matrix A containing n digits
-% * a 784-by-k-by-10 matrix T containing the first k singular vectors for
+% * a 784-by-5-by-10 matrix T containing the first 5 singular vectors for
 % each of the training sets (train0',train1',train2'...,train9')
-% (tranposed!)
+% (remember to take tranposed!)
 % 
 % and ouputs:
 %%
@@ -405,6 +432,7 @@ dist
 %%
 
 %% Step b: Test and report the success rate
+% *Task 4:*
 %%
 % 
 % * As in step b of Part 1, test and report the success rate of this PCA approach
