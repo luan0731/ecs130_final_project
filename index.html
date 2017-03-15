@@ -275,7 +275,7 @@ viewdigit( U3(:,2) ) ;
 	</li>
 
 	<li>
-	<p>The PCA method tests how well a digit <img src="final_eq88768.png" alt="$z$"> can be represented in this basis <img src="final_eq79497.png" alt="$U_3$" align="bottom"> of digit 3's by solving the least square problem:</p><p><center><img  src="final_eq45036.png" alt="$$\min_x\|z-U_3x\|_2$$"></center></p><p>which has the solution:</p><p><center><img src="final_eq91481.png" alt="$$\min_x || z - U_3x||_2 = || z - U_3U_3^Tz ||_2 $$"></center>
+	<p>The PCA method tests how well a digit <img src="final_eq88768.png" alt="$z$"> can be represented in this basis <img src="final_eq79497.png" alt="$U_3$" align="bottom"> of digit 3's by solving the least square problem:</p><p><center><img  src="final_eq45036.png" alt="$$\min_x\|z-U_3x\|_2$$"></center></p><p>which has the solution:</p><p><center><img src="final_eq95812.png" alt="$$\min_x || z - U_3x||_2 = || z - U_3U_3^Tz ||_2 $$"></center>
 	, where the vector inside the norm is called the <b>residual</b> vector. 
 	</p>
 	<p>This gives us a way to measure similarity between <img src="final_eq88768.png" alt="$z$"> and all the train digit 3's. The training phase then, consists of computing the SVD of each set of train digits and saving it in a 3 dimensional array:</p>
