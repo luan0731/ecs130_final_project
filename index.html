@@ -68,7 +68,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <div class="content">
 <h1>Class final project: Classification of Handwritten Digits</h1>
 <h2>Introduction</h2> <!--introduction-->
-<p>In this project assignment, we will attempt a classic pattern recognition problem. Given a dataset consisting of images of handwritten digits, the goal is to implement an algorithm that correctly labels each image with the correct digit classification (0 to 9).</p>
+<p>In this project assignment, we will attempt to solve a pattern recognition problem. Your main task in this project is to implement two methods for classifying a set of handwritten digits (the testing set). For each image in the testing set, each method should give a label corresponding the class of digit that most closely resembles the image’s shape. To build the algorithms, you are given a dataset for training purposes. The training data set contains a large number of examples of different ways each digit can be written.</p>
+
 <!--/introduction-->
 <h2>Contents</h2>
 <div><ul>
@@ -79,16 +80,15 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 <h2>Getting started<a name="1"></a></h2>
 <div><ol>
-	<li>Read the first few pages in the chapter on "Classification of Handwritten Digits" available on Canvas under Files for background on this problem.</li>
+	<li>Read the pdf file called "matrix methods in data mining and pattern recognition Chap10.pdf" on Canvas. </li>
 
-	<li>Download the dataset <b>'mnistdata.mat'</b> and the scripts <b>'mnistdata_upload.m'</b> and <b>'viewdigit.m'</b> from the assignment page</li>
+	<li>Download the dataset <b>'mnistdata.mat'</b> and the scripts <b>'mnistdata_upload.m'</b> and <b>'viewdigit.m'</b> from the class webpage</li>
 
-	<li> The dataset is separated into two categories, training and testing. Each category contains 10 sets of digits from 0-9. Each row within each set is of length 28*28=784  and represents a 28-by-28 pixel image. 
+	<li> The dataset is separated into two categories, training and testing. Each category contains 10 sets of digits (0 to 9).
 	<p> To see this, enter the following line into MATLAB </p>
 <pre class="codeinput">
 whos(<span class="string">'-file'</span>,<span class="string">'mnistdata.mat'</span>)
 </pre>
-	The output below shows that the training set <b>train5</b> contains 892 instances of digit 5, and the testing set <b>test8</b> contains 974 instances of digit 8.
 <pre class="codeoutput">  Name           Size               Bytes  Class    Attributes
 
   test0        980x784             768320  uint8              
@@ -112,9 +112,10 @@ whos(<span class="string">'-file'</span>,<span class="string">'mnistdata.mat'</s
   train8      5851x784            4587184  uint8              
   train9      5949x784            4664016  uint8              
 </pre>
+Each row within each set has length 28*28=784  and represents a 28-by-28 pixel image. For example, the array <b>train5</b> contains 892 instances of digit 5, and array <b>test8</b> contains 974 instances of digit 8.
 	</li>
 
-	<li>Begin with the <b>'mnistdata_upload.m'</b> script displayed below and keep modifying it as we go through the steps.</li>
+	<li>Start with the <b>'mnistdata_upload.m'</b> script displayed below.</li>
 	  
 <pre class="codeinput">
 <span class="comment">% The MNIST databse of handwritten digits --</span>
@@ -174,29 +175,31 @@ figure(2)
 	<img vspace="5" hspace="5" src="final_02.png" alt="" > 
 	</li>
 
+
+	<li>
+	<p>
+		In this project, we implement two ways to classify a digit:
+		<div><ul>
+			<li>
+				<p><b>The Centroid Method</b> provides a very simple approach to classifying digits. In the training phase, we build up a defining characteristic of each class of digit (0 to 9) by computing its centroid. The centroid of a class of digit is the average of all the different variations of that digit in the train set. For example, centroid of digit class 3 is found by taking the mean of all the 6131 rows of <b>train3</b>. In the classification/test phase, we compute the 2-norm (Euclidean) distances between an unknown digit and the centroids of all ten classes of digits, and classify the unknown digit into the class of digit for which its distance to that class' centroid is smallest. 
+				</p>
+			</li>
+
+			<li>
+				<p> <b>The PCA Method</b> is a way to classify digits that relies on using the SVD to compute defining characteristics. In the training phase, we will compute the SVD for each of the training data set. This will give us a set of singular vectors for each class of digit, which hopefully characterizes that class well. In the testing phase, we classify an unknown digit by computing its residual norm with respect to each class of digit and choosing the class which gives smallest residual. This residual (defined later on) gives a approximation of how well a unknown digit can be characterized by a certain class of digit. 
+				</p>
+				<p>
+
+				</p>
+			</li>
+		</ul></div>
+	</p>
+	</li>
 </ol></div>
-
-<p>
-	In this project, we implement two ways to classify a digit:
-	<div><ul>
-		<li>
-			<p><b>The Centroid Method</b> provides a very simple approach to classifying digits. In the training phase, we build up a defining characteristic of each class of digit (0 to 9) by computing its centroid. The centroid of a class of digit is the average of all the different variations of that digit in the train set. For example, centroid of digit class 3 is found by taking the mean of all the 6131 rows of <b>train3</b>. In the classification/test phase, we compute the 2-norm (Euclidean) distances between an unknown digit and the centroids of all ten classes of digits, and classify the unknown digit into the class of digit for which its distance to that class' centroid is smallest. 
-			</p>
-		</li>
-
-		<li>
-			<p> <b>The PCA Method</b> is a way to classify digits that relies on using the SVD to compute defining characteristics. In the training phase, we will compute the SVD for each of the training data set. This will give us a set of singular vectors for each class of digit, which hopefully characterizes that class well. In the testing phase, we classify an unknown digit by computing its residual norm with respect to each class of digit and choosing the class which gives smallest residual. This residual (defined later on) gives a approximation of how well a unknown digit can be characterized by a certain class of digit. 
-			</p>
-			<p>
-
-			</p>
-		</li>
-	</ul></div>
-</p>
 
 <h2> The Centroid method<a name="5"></a></h2>
 <div> <ol>
-	<li> The following code takes a digit from the testing set and computes the 2-norm distances between this digit and the 10 average train digits computed above.
+	<li> The following code takes a digit from the testing data and computes the 2-norm distances between this digit and the 10 average train digits computed above.
 <pre class="codeinput">z = double(test7(55,:));
 dist = zeros(10,1);
 <span class="keyword">for</span> k=1:10
@@ -220,51 +223,50 @@ dist =
     1.9331
     1.6696
 </pre>
-		<p>Since the 2-norm distance between unknown digit and the average train digit 7 is smallest, our simple classification algorithm will label unknown digit as '7' which is indeed the correct answer.</p>
-		<p>Note also that average train digit 7 is actually T(8,:) because MATLAB indexing starts at 1.</p>
+		<p>Since the 2-norm distance between unknown digit and the average train digit 7 is smallest, the centroid method will label unknown digit as '7' which is indeed the correct answer.</p>
+		<p>Note also that average train digit 7 is T(8,:) because MATLAB indexing starts at 1.</p>
 	</li>
 
-	<li> Your first task is to <b>write a function </b> that takes as inputs:
-		<div><ul><li>an n-by-784 matrix A containing n digits</li><li>a 10-by-784 matrix T containing the average train digits</li></ul></div>
+	<li> Your first task is to write a function called <b> centroid </b> that takes as inputs:
+		<div><ul>
+			<li>an integer identifying the test digit (e.g. 3 for digit 3 )  </li>
+			<li>a n-by-784 test array/images (e.g. <b> test3</b> for digit 3) </li>
+			<li>a 10-by-784 array T, where i-th row contains the average of (i-1)-th training digit</li>
+		</ul></div>
 		and outputs:
 		<div><ul>
-		<li>an n-by-1 vector containing the labels (0-9) for the digits in A.</li>
+		<li>an n-by-1 vector containing the results of classification (0-9) for the test images.</li>
+		<li>a number for the success rate  (which is equal to the number of correctly labeled digits divided by the total size n)  </li>
 		</ul></div>
 		<p>
-			In particular, running on a single test digit as shown here
-<pre class="codeinput">
-centroid(test7(55,:),T)
-</pre> should return 7, as we have seen above. 
-		</p>
-		<p>
-			And running on a whole set as shown here
-<pre class="codeinput">
-centroid(test7,T)
-</pre> should return a vector containing 1028 labels for each of the 1028 digits in <b>test7</b>. Note that it will not be a vector of all 7's because our algorithm will mislabel some of those digits.
-		</p>
-	</li>
 
-	<li> Your next task is to <b>classify the whole test set </b> (<b>test0</b>, <b>test1</b>,<b>test2</b>,...,<b>test9</b>) and report the success rate (correct/total) for each digit and for the whole test set. If you can, characterize cases where the centroid algorithm fail to give the correct classification.
+	<li> Your next task is to use the function <b>centroid</b> to compute the success rates of all test digits (<b>test0</b>, <b>test1</b>,<b>test2</b>,...,<b>test9</b>).
 	</li>
 </div></ol>
 
 
 <h2>The PCA Method<a name="13"></a></h2>
-<p>The PCA method attempts to identify characteristic properties of each digit, based on the training data, and compares these properties with those of the test digit in order to make an identification. Here, the characteristic properties are the principal components extracted from the training set.</p>
+<p>The PCA method first identifies characteristic properties of the training images, and uses these properties to make the classification of test images. Here, the characteristic properties are the principal components extracted from the training images.</p>
 
 <div><ol>
 	<li>
-		First, we will compute the principal components of a training set. The following code finds the first 5 left singular vectors of the digit 3 training set. Note that we actually need to take the SVD of the transposed of <b>train3</b> because each image is presented as a row in the matrix.  
-<pre class="codeinput">[U3,~,~] = svds(double(train3'), 5) ;
-size(U3)
-</pre><pre class="codeoutput">
+		The following line of code finds the first 5 singular vectors of the digit 3 training set.
+	</li>
+
+<pre class="codeinput">
+[U3,~,~] = svds(double(train3'), 5) ;
+size(U3) 
+</pre>
+<pre class="codeoutput">
 ans =
 
    784     5
 
 </pre>
+	<p>Note that we needed to take the SVD of the transpose of array <b>train3</b> because each image is stored as a row in the array. </p>
 	<p>These five singular vectors represent the five dominant chracteristics of the digit '3'. They also form an approximate basis for the space of all possible digit 3's. To view the first two singular vector, use function <b>viewdigit.m</b></p>
-<pre class="codeinput">viewdigit( U3(:,1) );
+<pre class="codeinput">
+viewdigit( U3(:,1) );
 
 viewdigit( U3(:,2) ) ;
 </pre>
@@ -273,9 +275,10 @@ viewdigit( U3(:,2) ) ;
 	</li>
 
 	<li>
-	<p>We can test how well a digit <img src="final_eq88768.png" alt="$z$"> can be represented in this basis <img src="final_eq79497.png" alt="$U_3$"> of digit 3 by solving the least square problem:</p><p><img src="final_eq45036.png" alt="$$\min_x\|z-U_3x\|_2$$"></p><p>which has the solution:</p><p><img src="final_eq91481.png" alt="$$\min_x || z - U_3x||_2 = || z - U_3U_3^Tz ||_2 $$">
+	<p>The PCA method tests how well a digit <img src="final_eq88768.png" alt="$z$"> can be represented in this basis <img src="final_eq79497.png" alt="$U_3$" align="bottom"> of digit 3's by solving the least square problem:</p><p><center><img  src="final_eq45036.png" alt="$$\min_x\|z-U_3x\|_2$$"></center></p><p>which has the solution:</p><p><center><img src="final_eq91481.png" alt="$$\min_x || z - U_3x||_2 = || z - U_3U_3^Tz ||_2 $$"></center>
+	, where the vector inside the norm is called the <b>residual</b> vector. 
 	</p>
-	<p>Now that we have a way to measure how far away an unknown digit is from 'looking' like digit 3, let's do the same for all digits 0 to 9. We generate approximate bases for all ten digits in this way:</p>
+	<p>This gives us a way to measure similarity between <img src="final_eq88768.png" alt="$z$"> and all the train digit 3's. The training phase then, consists of computing the SVD of each set of train digits and saving it in a 3 dimensional array:</p>
 <pre class="codeinput">basis_len = 5;
 Us=zeros( 28*28, basis_len, 10);
 <span class="keyword">for</span> k=1:10
@@ -288,15 +291,18 @@ Us=zeros( 28*28, basis_len, 10);
     Us(:,:,k)=U;
 <span class="keyword">end</span>
 </pre>
+Note that we have chosen to save only the first 5 singular vectors of each set of train digits. 
 	</li>
 
 	<li>
-	<p>The way we perform classification in this PCA approach is that for a given unknown digit <img src="final_eq88768.png" alt="$z$"> (say, test4(15,:)) we compute the expression</p>
+	<p>To classify an unknown digit <img src="final_eq88768.png" alt="$z$"> we compute the residual norm</p>
 
-	<p><img src="final_eq51010.png" alt="$$&#xA;\begin{array}{cl}&#xA;|| z - U_kU_k^Tz ||_2&#xA;\end{array}&#xA;$$"></p>
-	<p>for all digit <img src="final_eq86607.png" alt="$k$"> from 0 to 9 and choose <img src="final_eq88768.png" alt="$z$">'s label based on how well <img src="final_eq88768.png" alt="$z$"> are represented by approximate bases <img src="final_eq54097.png" alt="$U_0,U_1,\ldots,U_9$">. </p>
-	<p> For example, we give <img src="final_eq88768.png" alt="$z$"> the label 3 if</p>
-	<p><img src="final_eq95812.png" alt="$$|| z - U_3U_3^Tz ||_2$$"></p><p>gives the smallest number. Let's try that on a test digit:</p>
+	<p><center><img src="final_eq51010.png" alt="$$&#xA;\begin{array}{cl}&#xA;|| z - U_kU_k^Tz ||_2&#xA;\end{array}&#xA;$$"></center></p>
+
+	<p> for each <img src="final_eq86607.png" alt="$k$"> from 0 to 9 and choose <img src="final_eq88768.png" alt="$z$">'s label as the <img src="final_eq86607.png" alt="$k$"> that results in the smallest residual norm. 
+
+	<p>Let's try that on a test digit:</p>
+
 <pre class="codeinput">z = double(test4(14,:))';
 dist = zeros(10,1);
 <span class="keyword">for</span> k=1:10
@@ -321,29 +327,27 @@ dist =
     1.9618
     1.7316
 </pre>
-	Since test4(14,:) is best represented by the approximate basis of digit 4 (as indicated by the smallest magnitude). It gets labeled with '4' which is the correct answer!
+	Since the residual norm is smallest in the basis of 4's, test4(14,:) is classified as '4' (which is the correct answer!).
 	</li>
 
 	<li>
-		Your task now is to <b>write a function</b> that takes as inputs:
+		Your task now is to write a function that takes as inputs:
 		<div><ul>
-			<li>an n-by-784 matrix A containing n digits</li>
-			<li>a 784-by-5-by-10 matrix T containing the first 5 singular vectors for each of the training sets (train0',train1',train2'...,train9') (remember to take tranposed!)</li>
+			<li>an integer identifying the test digit (e.g. 3 for digit 3 )  </li>
+			<li>a n-by-784 test array/images (e.g. <b> test3</b> for digit 3) </li>
+			<li>a 784-by-5-by-10 array U, where U(:,:,i) contains the first 5 singular vectors of the (i-1)-th training digit  </li>
 		</ul></div>
 		and ouputs:
 		<div><ul>
-			<li>n-by-1 vector containing the labels (0-9) for digits in A.</li>
+			<li>an n-by-1 vector containing the results of the classification (0-9) for the test images.</li>
+			<li>a number for the success rate (which is equal to the number of correctly labeled digits divided by total size n)  </li>
 		</ul></div>
 	</li>
 
-	<li> Next, test and report the success rate of this PCA approach. How does it compare to the centroid method? For which cases does the algorithm fail to perform well?
+	<li> Use the function created above to compute the success rates of all test digits. How does it compare to the centroid method?
 	</li>
 
-	<li> Finally, experiment with different basis_len. How does the accuracy change as you increase basis_len? 
-	</li>
-
-	<li>
-	The website <a href="http://yann.lecun.com/exdb/mnist/">http://yann.lecun.com/exdb/mnist/</a> shows results for other classification methods on the same data set. See how your algorithm compares. One way to improve accuracy of our PCA algorithm is to use different basis lengths for each class of digits. 
+	<li> Finally, experiment with different values for <b>basis_len</b>. How does the success rate change as you use more singular vectors? 
 	</li>
 	
 </ol></div>
